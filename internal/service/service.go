@@ -1,6 +1,8 @@
 package service
 
-import "github.com/usawyer/testZeroAgency/models"
+import (
+	"github.com/usawyer/testZeroAgency/models"
+)
 
 type Service struct {
 	DB Store
@@ -10,8 +12,10 @@ func New(db Store) *Service {
 	return &Service{DB: db}
 }
 
-func (s *Service) CreatePost(news models.News) {
-	s.DB.CreatePost(news)
+func (s *Service) CreatePost(news models.News) error {
+	err := s.DB.CreatePost(news)
+	//fmt.Println(err)
+	return err
 }
 
 func (s *Service) GetPosts(params models.SearchParams) ([]models.News, error) {

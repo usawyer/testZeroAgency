@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/usawyer/testZeroAgency/internal/service"
 	"github.com/usawyer/testZeroAgency/models"
@@ -28,16 +27,18 @@ func (h *Handler) CreatePost(c *fiber.Ctx) error {
 
 	err := c.BodyParser(&news)
 	if err != nil {
-		fmt.Println(err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Success": false, "Error": "invalid data input"})
 	}
 
-	// проверить внимательнее
 	if h.s.IfExists(news.Id) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Success": false, "Error": "Id is already exists"})
 	}
 
-	h.s.CreatePost(news)
+	err = h.s.CreatePost(news)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Success": false, "Error": "news was not created"})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Success": true, "Id": news.Id})
 }
 
@@ -49,7 +50,6 @@ func (h *Handler) EditPost(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Success": false, "Error": "invalid id input"})
 	}
 
-	// проверить внимательнее
 	if !(h.s.IfExists(id)) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Success": false, "Error": "no news with such Id"})
 	}
