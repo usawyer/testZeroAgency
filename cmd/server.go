@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	database "github.com/usawyer/testZeroAgency/internal/db"
 	"github.com/usawyer/testZeroAgency/internal/handlers"
 	"github.com/usawyer/testZeroAgency/internal/service"
-	"log"
 )
 
 func main() {

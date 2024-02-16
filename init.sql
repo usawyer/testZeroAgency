@@ -1,0 +1,13 @@
+-- DROP TABLE IF EXISTS news;
+-- DROP TABLE IF EXISTS news_categories;
+
+CREATE TABLE IF NOT EXISTS news (
+    id BIGINT PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS news_categories (
+    id BIGSERIAL PRIMARY KEY,
+    news_id BIGINT NOT NULL,
+    category_id BIGINT NOT NULL,
+    FOREIGN KEY (news_id) REFERENCES news (id) ON DELETE CASCADE);

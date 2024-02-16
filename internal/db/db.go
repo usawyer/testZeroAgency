@@ -1,66 +1,22 @@
 package database
 
 import (
-	"database/sql"
-	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"strings"
+
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/usawyer/testZeroAgency/internal/service"
 	"github.com/usawyer/testZeroAgency/models"
 	"gopkg.in/reform.v1/dialects/postgresql"
-	"os"
-	"time"
-
-	"log"
 
 	"gopkg.in/reform.v1"
 )
 
 type PgClient struct {
 	db *reform.DB
-}
-
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-	return value
-}
-
-// сложить в отдельный файл?
-
-func initDB() (*sql.DB, error) {
-	connectionParams := map[string]string{
-		"host":     getEnv("DB_HOST", "localhost"),
-		"user":     getEnv("POSTGRES_USER", "postgres"),
-		"password": getEnv("POSTGRES_PASSWORD", "postgres"),
-		"dbname":   getEnv("POSTGRES_DB", "test"),
-		"port":     getEnv("DB_PORT", "5432"),
-		"sslmode":  "disable",
-		"TimeZone": "Asia/Novosibirsk",
-	}
-
-	var dsn string
-	for key, value := range connectionParams {
-		dsn += fmt.Sprintf("%s=%s ", key, value)
-	}
-
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	db.SetMaxOpenConns(10)
-	db.SetConnMaxLifetime(time.Minute * 5)
-
-	err = db.Ping()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
 }
 
 func New() service.Store {
@@ -80,9 +36,16 @@ func (p *PgClient) CreatePost(news models.News) error {
 	if err != nil {
 		return errors.Wrap(err, "error starting transaction")
 	}
+
+	if p.ifExists(news.Id) {
+		return errors.New("id is already exists")
+	}
+
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			if e := tx.Rollback(); e != nil {
+				err = errors.Wrap(e, "error making rollback")
+			}
 		}
 	}()
 
@@ -120,7 +83,7 @@ func (p *PgClient) GetPosts(params models.SearchParams) ([]models.News, error) {
 		return nil, errors.New("news table is empty")
 	}
 
-	var newslist []models.News
+	var newsList []models.News
 
 	for _, value := range res {
 		news := *value.(*models.News)
@@ -134,29 +97,93 @@ func (p *PgClient) GetPosts(params models.SearchParams) ([]models.News, error) {
 			news.Categories = append(news.Categories, c.(*models.NewsCategories).CategoryId)
 		}
 
-		newslist = append(newslist, news)
+		newsList = append(newsList, news)
 	}
-	return newslist, nil
+	return newsList, nil
 }
 
-func (p *PgClient) EditPost(id int, news models.News) {
-	//err := p.db.Create(&news)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	log.Println("EDITED POST")
+func (p *PgClient) EditPost(id int, news models.News) error {
+	tx, err := p.db.Begin()
+	if err != nil {
+		return errors.Wrap(err, "error starting transaction")
+	}
+
+	defer func() {
+		if err != nil {
+			if e := tx.Rollback(); e != nil {
+				err = errors.Wrap(e, "error making rollback")
+			}
+		}
+	}()
+
+	if !p.ifExists(id) {
+		return errors.New("news with such id doesn't exist")
+	}
+
+	updateFields := make(map[string]interface{})
+	if news.Title != "" {
+		updateFields["title"] = news.Title
+	}
+	if news.Content != "" {
+		updateFields["content"] = news.Content
+	}
+
+	if len(updateFields) == 0 && news.Categories == nil {
+		return errors.New("nothing to update")
+	} else if len(updateFields) > 0 {
+		query := "UPDATE news SET"
+		values := make([]interface{}, 0)
+		idx := 1
+		for key, value := range updateFields {
+			query += " " + key + " = $" + strconv.Itoa(idx) + ","
+			idx++
+			values = append(values, value)
+		}
+		query = strings.TrimSuffix(query, ",")
+		query += " WHERE id = $" + strconv.Itoa(idx)
+		values = append(values, id)
+
+		_, err = tx.Exec(query, values...)
+		if err != nil {
+			return errors.Wrap(err, "error updating news")
+		}
+	}
+
+	if news.Categories != nil {
+		_, err = tx.DeleteFrom(models.NewsCategoriesTable, "WHERE news_id = $1", id)
+		if err != nil {
+			return errors.Wrap(err, "error deleting old categories")
+		}
+
+		_, err = tx.Exec("SELECT setval('news_categories_id_seq', (SELECT MAX(id) FROM news_categories));")
+		if err != nil {
+			return errors.Wrap(err, "error updating id news_categories")
+		}
+
+		for _, c := range news.Categories {
+			category := &models.NewsCategories{
+				CategoryId: c,
+				NewsId:     id,
+			}
+			err = tx.Save(category)
+			if err != nil {
+				return errors.Wrap(err, "error updating categories")
+			}
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return errors.Wrap(err, "error committing transaction")
+	}
+
+	return nil
 }
 
-func (p *PgClient) IfExists(id int) bool {
+func (p *PgClient) ifExists(id int) bool {
 	var news models.News
 	if err := p.db.FindByPrimaryKeyTo(&news, id); err != nil {
 		return false
 	}
 	return true
 }
-
-//	// Пример обновления пользователя
-//	userByID.Age = 31
-//	if err := db2.Save(userByID); err != nil {
-//		log.Fatal(err)
-//	}

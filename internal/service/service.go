@@ -14,7 +14,6 @@ func New(db Store) *Service {
 
 func (s *Service) CreatePost(news models.News) error {
 	err := s.DB.CreatePost(news)
-	//fmt.Println(err)
 	return err
 }
 
@@ -24,11 +23,6 @@ func (s *Service) GetPosts(params models.SearchParams) ([]models.News, error) {
 }
 
 func (s *Service) EditPost(id int, news models.News) error {
-	s.DB.EditPost(id, news)
-	//обработка ошибок
-	return nil
-}
-
-func (s *Service) IfExists(id int) bool {
-	return s.DB.IfExists(id)
+	err := s.DB.EditPost(id, news)
+	return err
 }
