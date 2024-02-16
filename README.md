@@ -1,54 +1,54 @@
 # News API
-Проект представляет собой JSON REST сервер для управления новостями.  
+The project represents a JSON REST server for managing news.
 
-Предоставляются следующие ручки:
+The following endpoints are provided:
 ```
-POST /create - создание новости
-POST /edit/:Id - изменение новости по Id
-GET /list - список новостей
+POST /create - create a news article
+POST /edit/:Id - edit a news article by Id
+GET /list - list of news articles
 ```
 
-### Установка и запуск
+### Installation and Running
 
 ```
 make run
 ```
-Команда запустит контейнеры и настроит необходимые сервисы.
+This command will start the containers and configure the necessary services.
 
-### Работа с API
-#### Создание новости
-Чтобы создать новость, отправьте POST-запрос на эндпоинт /create с JSON-body в следующем формате:
+### Working with the API
+#### Creating a News Article
+To create a news article, send a POST request to the /create endpoint with a JSON body in the following format:
 
-В случе успешного создания новости, вы получите следующий ответ.
+In case of successful news creation, you will receive the following response.
 
 ![create_success](./docs/images/create_success.png)
 
-Если новость не была создана, то будет выведен ответ с соответствующей ошибкой.
+If the news article was not created, an error response will be displayed.
 
 ![create_fail](./docs/images/create_fail.png)
 
-#### Изменение новости
-Чтобы изменить существующую новость, отправьте POST-запрос на эндпоинт /edit/:Id, где :Id - это идентификатор новости, которую вы хотите изменить.
+#### Editing a News Article
+To edit an existing news article, send a POST request to the /edit/:Id endpoint, where :Id is the identifier of the news article you want to edit.
 
 ![before_edit](./docs/images/before_edit.png)
 
-Например, изменим поле "Content" и "Categories".
+For example, let's change the "Content" and "Categories" fields.
 
 ![edit](./docs/images/edit.png)
 
-Как можем заметить, поле "Title" осталось прежним, значения остальных полей были обновлены.
+As we can see, the "Title" field remained the same, while the values of the other fields were updated.
 
 ![after_edit](./docs/images/after_edit.png)
 
 
-#### Получение списка новостей
-Чтобы получить список всех новостей, отправьте GET-запрос на эндпоинт /list.
+#### Getting a List of News Articles
+To retrieve a list of all news articles, send a GET request to the /list endpoint.
 
 ![get](./docs/images/get.png)
 
-В ответе вы получите JSON-объект со списком новостей.
+You will receive a JSON object with a list of news articles in response.  
 
-#### Пагинация
-По умолчанию отображается 5 новостей на странице.
+#### Pagination
+By default, 5 news articles are displayed per page.
 
 ![pagination screecast](./docs/images/pagination.gif)
