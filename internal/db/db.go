@@ -80,7 +80,7 @@ func (p *PgClient) GetPosts(params models.SearchParams) ([]models.News, error) {
 	}
 
 	if len(res) == 0 {
-		return nil, errors.New("news table is empty")
+		return nil, errors.New("no news found")
 	}
 
 	var newsList []models.News
