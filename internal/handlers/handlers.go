@@ -17,9 +17,9 @@ func New(s *service.Service) *Handler {
 }
 
 func (h *Handler) InitRoutes(app *fiber.App) {
-	app.Post("/edit/:Id", h.EditPost)
-	app.Post("/create", h.CreatePost)
-	app.Get("/list", h.GetPosts)
+	app.Put("/posts/:Id", h.EditPost)
+	app.Post("/posts", h.CreatePost)
+	app.Get("/posts", h.GetPosts)
 }
 
 func (h *Handler) CreatePost(c *fiber.Ctx) error {

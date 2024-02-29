@@ -3,9 +3,9 @@ The project represents a JSON REST server for managing news.
 
 The following endpoints are provided:
 ```
-POST /create - create a news article
-POST /edit/:Id - edit a news article by Id
-GET /list - list of news articles
+POST /posts - create a news article
+PUT /posts/:Id - edit a news article by Id
+GET /posts - list of news articles
 ```
 
 ### Installation and Running
@@ -17,7 +17,7 @@ This command will start the containers and configure the necessary services.
 
 ### Working with the API
 #### Creating a News Article
-To create a news article, send a POST request to the /create endpoint with a JSON body in the following format:
+To create a news article, send a POST request to the /posts endpoint with a JSON body in the following format:
 
 In case of successful news creation, you will receive the following response.
 
@@ -28,7 +28,7 @@ If the news article was not created, an error response will be displayed.
 ![create_fail](./docs/images/create_fail.png)
 
 #### Editing a News Article
-To edit an existing news article, send a POST request to the /edit/:Id endpoint, where :Id is the identifier of the news article you want to edit.
+To edit an existing news article, send a PUT request to the /posts/:Id endpoint, where :Id is the identifier of the news article you want to edit.
 
 ![before_edit](./docs/images/before_edit.png)
 
@@ -42,7 +42,7 @@ As we can see, the "Title" field remained the same, while the values of the othe
 
 
 #### Getting a List of News Articles
-To retrieve a list of all news articles, send a GET request to the /list endpoint.
+To retrieve a list of all news articles, send a GET request to the /posts endpoint.
 
 ![get](./docs/images/get.png)
 
